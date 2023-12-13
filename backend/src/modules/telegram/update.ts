@@ -1,21 +1,17 @@
 import { Command, Ctx, On, Start, Update } from 'nestjs-telegraf';
 import { Context, Scenes } from 'telegraf';
-import {
-  CONNECTOR,
-  CONNECTOR_ADMIN,
-} from './scenes';
+import { CONNECTOR, CONNECTOR_ADMIN, } from './scenes';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConnectorService } from './connector/connector.service';
-import { COMMAND_CONNECT, TelegramService } from './telegram.service';
+import { COMMAND_CONNECT } from './telegram.service';
+import { ConfigService } from '@nestjs/config';
 
 @Update()
 @Injectable()
 export class AppUpdate {
-  private readonly logger = new Logger(AppUpdate.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
-    private connectorService: ConnectorService,
-    private telegramService: TelegramService,
+    private config: ConfigService
   ) {
   }
 
@@ -31,7 +27,7 @@ export class AppUpdate {
 
   async help(@Ctx() ctx: Context) {
     await ctx.reply(
-      `Добрый день! С Вами говорит виртуальный помощник \${username}. Вам доступны следующие команды:` +
+      `Добрый день! С Вами говорит виртуальный помощник ${this.config.get('telegram.ownerName', '${username}')}. Вам доступны следующие команды:` +
       '\n\n' +
       '/connect - связаться с \${username}' +
       '\n' +
@@ -40,7 +36,24 @@ export class AppUpdate {
   }
 
   @On('message')
-  async onMessage(@Ctx() ctx: Scenes.SceneContext) {
+  async onMessage(@Ctx() ctx: Scenes.SceneContext): Promise<void> {
+    this.logger.log(`Message: ${JSON.stringify(ctx.message)}`);
+    this.logger.log(`Current settings: ${JSON.stringify(this.config.get('telegram.chats'))}`);
+    console.log({config: this.config.get('telegram.chats.adminSupportChatId'), id: ctx.chat.id});
+    const common = this.handleCommonUpdates(ctx);
+    if (!common) {
+      return;
+    }
+    switch (ctx.chat.id.toString()) {
+      case this.config.get('telegram.chats.adminSupportChatId'):
+        await ctx.scene.enter(CONNECTOR_ADMIN);
+        break;
+      default:
+        await this.help(ctx);
+    }
+  }
+
+  private handleCommonUpdates(@Ctx() ctx: Scenes.SceneContext): boolean {
     if (ctx.message['group_chat_created']) {
       this.logger.log(
         'just created new chat and me was added to this',
@@ -65,18 +78,7 @@ export class AppUpdate {
       );
       return;
     }
-    this.logger.log('Handling update');
-    const allChatsConfig = {
-      supportAdminTelegramId: this.connectorService.getSupportAdminTelegramId(),
-    };
-    this.logger.log(`Current settings: ${JSON.stringify(allChatsConfig)}`);
-    switch (ctx.chat.id) {
-      case allChatsConfig.supportAdminTelegramId:
-        this.logger.log('Enter Support admin');
-        await ctx.scene.enter(CONNECTOR_ADMIN);
-        break;
-      default:
-        await this.help(ctx);
-    }
+
+    return true;
   }
 }

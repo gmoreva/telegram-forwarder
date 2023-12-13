@@ -1,22 +1,23 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { TelegramModule } from './telegram/telegram.module';
 import * as path from 'path';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { settings } from './const';
-import { ConnectorEntity } from './telegram/connector/connector.entity';
+import { TelegramModule } from '@modules//telegram/telegram.module';
+import { databaseConfig } from '@infrastructure/config/database';
+import { telegram } from '@infrastructure/config/telegram';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: settings.sqlitePath,
-      entities: [ConnectorEntity],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [databaseConfig, telegram]
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return configService.get('database');
+      }
     }),
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'static'),
@@ -25,8 +26,8 @@ import { ConnectorEntity } from './telegram/connector/connector.entity';
     }),
     TelegramModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {
 }
