@@ -10,4 +10,5 @@ import { ConnectorAdminScene } from './connectorAdmin.scene';
     ConnectorAdminScene,
   ],
 })
-export class ConnectorModule {}
+export class ConnectorModule {
+}

@@ -23,9 +23,8 @@ export function parseDbUrl(databaseUrl: string): Created {
   var config: any = {
     query: querystring.parse(parsedUrl.query),
   };
-  if (config.query.sync) {
-    config.query.sync = parseBool(config.query.sync);
-  }
+  config.query.sync = parseBool(config.query.sync);
+  config.query.runMigrate = parseBool(config.query.runMigrate);
 
   config.driver = (parsedUrl.protocol || 'sqlite3:')
     // The protocol coming from url.parse() has a trailing :

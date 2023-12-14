@@ -9,7 +9,6 @@ import { Update } from 'typegram';
 import { Sender } from '@modules/telegram/entities/connector.entity';
 import MessageUpdate = Update.MessageUpdate;
 import EditedMessageUpdate = Update.EditedMessageUpdate;
-import { Message } from 'telegraf/types';
 
 @Scene(CONNECTOR_ADMIN)
 @Injectable()

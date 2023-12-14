@@ -2,18 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { ConnectorEntity, Sender } from '../entities/connector.entity';
-import { InjectBot } from 'nestjs-telegraf';
-import { Context, Telegraf } from 'telegraf';
+import { Context } from 'telegraf';
 import { Update } from 'typegram';
-import EditedMessageUpdate = Update.EditedMessageUpdate;
 import { Message } from 'telegraf/types';
+import EditedMessageUpdate = Update.EditedMessageUpdate;
 
 @Injectable()
 export class ConnectorService {
   constructor(
     @InjectEntityManager()
     private readonly man: EntityManager,
-    @InjectBot() private bot: Telegraf<Context>
   ) {
   }
 
