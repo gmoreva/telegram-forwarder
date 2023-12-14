@@ -40,7 +40,7 @@ export class AppUpdate {
     this.logger.log(
       `Current settings: ${JSON.stringify(this.config.get('telegram.chats'))}`,
     );
-    const common = this.handleCommonUpdates(ctx);
+    const common = this.handleCommonUpdates(ctx as any);
     if (!common) {
       return;
     }
@@ -53,7 +53,7 @@ export class AppUpdate {
     }
   }
 
-  private handleCommonUpdates(@Ctx() ctx: Scenes.SceneContext): boolean {
+  private handleCommonUpdates(@Ctx() ctx: Context<any>): boolean {
     if (ctx.message.group_chat_created) {
       this.logger.log(
         'just created new chat and me was added to this',
