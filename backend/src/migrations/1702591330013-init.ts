@@ -1,10 +1,12 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Init1702591330013 implements MigrationInterface {
   name = 'Init1702591330013';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "public"."connector_entity_sender_enum" AS ENUM('user', 'admin')`);
+    await queryRunner.query(
+      `CREATE TYPE "public"."connector_entity_sender_enum" AS ENUM('user', 'admin')`,
+    );
     await queryRunner.query(`CREATE TABLE "connector_entity"
                              (
                                  "id"             SERIAL                                  NOT NULL,
@@ -21,7 +23,8 @@ export class Init1702591330013 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE "connector_entity"`);
-    await queryRunner.query(`DROP TYPE "public"."connector_entity_sender_enum"`);
+    await queryRunner.query(
+      `DROP TYPE "public"."connector_entity_sender_enum"`,
+    );
   }
-
 }

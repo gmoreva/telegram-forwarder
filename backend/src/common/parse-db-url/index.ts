@@ -17,10 +17,10 @@ type Created = {
 };
 
 export function parseDbUrl(databaseUrl: string): Created {
-  var parsedUrl = url.parse(databaseUrl, false, true);
+  const parsedUrl = url.parse(databaseUrl, false, true);
 
   // Query parameters end up directly in the configuration.
-  var config: any = {
+  const config: any = {
     query: querystring.parse(parsedUrl.query),
   };
   config.query.sync = parseBool(config.query.sync);
@@ -36,7 +36,7 @@ export function parseDbUrl(databaseUrl: string): Created {
   // url.parse() produces an "auth" that looks like "user:password". No
   // individual fields, unfortunately.
   if (parsedUrl.auth) {
-    var userPassword = parsedUrl.auth.split(':', 2);
+    const userPassword = parsedUrl.auth.split(':', 2);
     config.user = userPassword[0];
     if (userPassword.length > 1) {
       config.password = userPassword[1];

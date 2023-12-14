@@ -11,13 +11,13 @@ import { telegram } from '@infrastructure/config/telegram';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, telegram]
+      load: [databaseConfig, telegram],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return configService.get('database');
-      }
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'static'),
@@ -29,5 +29,4 @@ import { telegram } from '@infrastructure/config/telegram';
   controllers: [],
   providers: [],
 })
-export class AppModule {
-}
+export class AppModule {}

@@ -1,22 +1,25 @@
 import { Ctx, Help, On, Scene, SceneEnter } from 'nestjs-telegraf';
 import { Context } from 'telegraf';
-import { CONNECTOR_ADMIN } from '../scenes';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConnectorService } from './connector.service';
 import { ExtraCopyMessage } from 'telegraf/typings/telegram-types';
 import { ConfigService } from '@nestjs/config';
 import { Update } from 'typegram';
 import { Sender } from '@modules/telegram/entities/connector.entity';
 import MessageUpdate = Update.MessageUpdate;
 import EditedMessageUpdate = Update.EditedMessageUpdate;
+import { handleEditMessage } from '@modules/telegram/connector/helpers';
+import { ConnectorService } from './connector.service';
+import { CONNECTOR_ADMIN } from '../scenes';
 
 @Scene(CONNECTOR_ADMIN)
 @Injectable()
 export class ConnectorAdminScene {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private connectorService: ConnectorService, private config: ConfigService) {
-  }
+  constructor(
+    private connectorService: ConnectorService,
+    private config: ConfigService,
+  ) {}
 
   @SceneEnter()
   async help(@Ctx() ctx: Context<any>) {
@@ -33,9 +36,16 @@ export class ConnectorAdminScene {
 
   @On('edited_message')
   async onEditedMessage(@Ctx() ctx: Context<EditedMessageUpdate<any>>) {
-    const foundUserMessage = await this.connectorService.getConnectionByAdminChatId(ctx.update.edited_message.message_id);
+    const foundUserMessage =
+      await this.connectorService.getConnectionByAdminChatId(
+        ctx.update.edited_message.message_id,
+      );
     if (foundUserMessage) {
-      await this.connectorService.handleEditMessage(ctx, foundUserMessage.userId, foundUserMessage.userMessageId);
+      await handleEditMessage(
+        ctx,
+        foundUserMessage.userId,
+        foundUserMessage.userMessageId,
+      );
     }
   }
 
@@ -47,10 +57,12 @@ export class ConnectorAdminScene {
     if (!ctx.update.message) {
       this.logger.warn(`Unknown update`);
     }
-    const message: any = ctx.update.message;
+    const { message } = ctx.update;
     const replyTo = message.reply_to_message?.message_id;
     if (replyTo) {
-      const foundChat = await this.connectorService.getConnectionByAdminChatId(replyTo);
+      const foundChat = await this.connectorService.getConnectionByAdminChatId(
+        replyTo,
+      );
       if (foundChat) {
         let extra: ExtraCopyMessage = {};
         if (!foundChat.isInit && !foundChat.isTopicStart) {
@@ -66,7 +78,7 @@ export class ConnectorAdminScene {
             ctx.message.message_id,
             false,
             false,
-            Sender.ADMIN
+            Sender.ADMIN,
           );
         } catch (e) {
           this.logger.error(e);

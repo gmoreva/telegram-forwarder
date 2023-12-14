@@ -8,10 +8,7 @@ export const COMMAND_CONNECT = 'connect';
 export class TelegramService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(
-    @InjectBot() private bot: Telegraf<Scenes.SceneContext>
-  ) {
-  }
+  constructor(@InjectBot() private bot: Telegraf<Scenes.SceneContext>) {}
 
   public async middleware(ctx: Context, next: any) {
     try {
@@ -25,8 +22,8 @@ export class TelegramService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap(): Promise<any> {
     this.bot.use(this.middleware);
-    this.bot.telegram.getMe().then(r => {
-      this.logger.log('started bot: @' + r.username);
+    this.bot.telegram.getMe().then((r) => {
+      this.logger.log(`started bot: @${r.username}`);
     });
   }
 }

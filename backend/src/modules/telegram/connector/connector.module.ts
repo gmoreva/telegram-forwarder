@@ -4,11 +4,6 @@ import { ConnectorService } from './connector.service';
 import { ConnectorAdminScene } from './connectorAdmin.scene';
 
 @Module({
-  providers: [
-    ConnectorScene,
-    ConnectorService,
-    ConnectorAdminScene,
-  ],
+  providers: [ConnectorScene, ConnectorService, ConnectorAdminScene],
 })
-export class ConnectorModule {
-}
+export class ConnectorModule {}

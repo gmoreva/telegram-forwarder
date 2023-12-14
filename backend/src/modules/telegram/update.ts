@@ -1,19 +1,16 @@
 import { Command, Ctx, On, Start, Update } from 'nestjs-telegraf';
 import { Context, Scenes } from 'telegraf';
-import { CONNECTOR, CONNECTOR_ADMIN, } from './scenes';
 import { Injectable, Logger } from '@nestjs/common';
-import { COMMAND_CONNECT } from './telegram.service';
 import { ConfigService } from '@nestjs/config';
+import { CONNECTOR, CONNECTOR_ADMIN } from './scenes';
+import { COMMAND_CONNECT } from './telegram.service';
 
 @Update()
 @Injectable()
 export class AppUpdate {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(
-    private config: ConfigService
-  ) {
-  }
+  constructor(private config: ConfigService) {}
 
   @Start()
   async start(@Ctx() ctx: Scenes.SceneContext) {
@@ -27,19 +24,27 @@ export class AppUpdate {
 
   async help(@Ctx() ctx: Context) {
     await ctx.reply(
-      `Добрый день! С Вами говорит виртуальный помощник ${this.config.get('telegram.ownerName', '${username}')}. Вам доступны следующие команды:` +
-      '\n\n' +
-      '/connect - связаться с \${username}' +
-      '\n' +
-      '/help - увидеть это сообщение'
+      `Добрый день! С Вами говорит виртуальный помощник ${this.config.get(
+        'telegram.ownerName',
+        '${username}',
+      )}. Вам доступны следующие команды:` +
+        '\n\n' +
+        '/connect - связаться с ${username}' +
+        '\n' +
+        '/help - увидеть это сообщение',
     );
   }
 
   @On('message')
   async onMessage(@Ctx() ctx: Scenes.SceneContext): Promise<void> {
     this.logger.log(`Message: ${JSON.stringify(ctx.message)}`);
-    this.logger.log(`Current settings: ${JSON.stringify(this.config.get('telegram.chats'))}`);
-    console.log({config: this.config.get('telegram.chats.adminSupportChatId'), id: ctx.chat.id});
+    this.logger.log(
+      `Current settings: ${JSON.stringify(this.config.get('telegram.chats'))}`,
+    );
+    console.log({
+      config: this.config.get('telegram.chats.adminSupportChatId'),
+      id: ctx.chat.id,
+    });
     const common = this.handleCommonUpdates(ctx);
     if (!common) {
       return;
@@ -54,26 +59,26 @@ export class AppUpdate {
   }
 
   private handleCommonUpdates(@Ctx() ctx: Scenes.SceneContext): boolean {
-    if (ctx.message['group_chat_created']) {
+    if (ctx.message.group_chat_created) {
       this.logger.log(
         'just created new chat and me was added to this',
-        ctx.message.chat['title'],
+        ctx.message.chat.title,
         ctx.message.chat.id,
       );
       return;
     }
-    if (ctx.message['left_chat_participant']?.id === ctx.botInfo.id) {
+    if (ctx.message.left_chat_participant?.id === ctx.botInfo.id) {
       this.logger.log(
         'i was deleted from chat',
-        ctx.message.chat['title'],
+        ctx.message.chat.title,
         ctx.message.chat.id,
       );
       return;
     }
-    if (ctx.message['new_chat_member']?.id === ctx.botInfo.id) {
+    if (ctx.message.new_chat_member?.id === ctx.botInfo.id) {
       this.logger.log(
         'i was added to chat',
-        ctx.message.chat['title'],
+        ctx.message.chat.title,
         ctx.message.chat.id,
       );
       return;
