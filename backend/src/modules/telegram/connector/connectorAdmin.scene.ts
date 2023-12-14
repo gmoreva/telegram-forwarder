@@ -6,7 +6,10 @@ import { ConnectorService } from './connector.service';
 import { ExtraCopyMessage } from 'telegraf/typings/telegram-types';
 import { ConfigService } from '@nestjs/config';
 import { Update } from 'typegram';
+import { Sender } from '@modules/telegram/entities/connector.entity';
 import MessageUpdate = Update.MessageUpdate;
+import EditedMessageUpdate = Update.EditedMessageUpdate;
+import { Message } from 'telegraf/types';
 
 @Scene(CONNECTOR_ADMIN)
 @Injectable()
@@ -29,6 +32,16 @@ export class ConnectorAdminScene {
     );
   }
 
+  @On('edited_message')
+  async onEditedMessage(@Ctx() ctx: Context<EditedMessageUpdate<any>>) {
+    const foundUserMessage = await this.connectorService.getConnectionByAdminChatId(ctx.update.edited_message.message_id);
+    if (foundUserMessage) {
+      await this.connectorService.handleEditMessage(ctx, foundUserMessage.userId, foundUserMessage.userMessageId);
+    }
+  }
+
+  // @On('rem')
+
   @On('message')
   async onMessage(@Ctx() ctx: Context<MessageUpdate<any>>) {
     this.logger.log(ctx.update);
@@ -40,13 +53,8 @@ export class ConnectorAdminScene {
     if (replyTo) {
       const foundChat = await this.connectorService.getConnectionByAdminChatId(replyTo);
       if (foundChat) {
-        await this.connectorService.saveChatMessageId(
-          foundChat.userId,
-          foundChat.userMessageId,
-          ctx.message.message_id,
-        );
         let extra: ExtraCopyMessage = {};
-        if (!foundChat.isInit) {
+        if (!foundChat.isInit && !foundChat.isTopicStart) {
           extra = {
             reply_to_message_id: foundChat.userMessageId,
           };
@@ -57,6 +65,9 @@ export class ConnectorAdminScene {
             foundChat.userId,
             copyResult.message_id,
             ctx.message.message_id,
+            false,
+            false,
+            Sender.ADMIN
           );
         } catch (e) {
           this.logger.error(e);

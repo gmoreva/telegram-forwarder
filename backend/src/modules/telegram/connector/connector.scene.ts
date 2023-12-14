@@ -4,7 +4,10 @@ import { CONNECTOR } from './../scenes';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConnectorService } from './connector.service';
 import { ConfigService } from '@nestjs/config';
-import type { Message, Update } from "telegraf/types";
+import type { Message } from "telegraf/types";
+import { Sender } from '@modules/telegram/entities/connector.entity';
+import { Update } from 'typegram';
+import EditedMessageUpdate = Update.EditedMessageUpdate;
 
 @Scene(CONNECTOR)
 @Injectable()
@@ -29,7 +32,7 @@ export class ConnectorScene {
       try {
         const createdTopic = await ctx.telegram.createForumTopic(adminTelegramId, `Chat_${ctx.from.id}`);
         sendMessageExtra.message_thread_id = createdTopic.message_thread_id;
-        await this.connectorService.saveChatMessageId(ctx.from.id, ctx.message.message_id, sendMessageExtra.message_thread_id, false, true);
+        await this.connectorService.saveChatMessageId(ctx.from.id, ctx.message.message_id, sendMessageExtra.message_thread_id, false, true, Sender.USER);
         this.logger.log(`Created topic for message: Name: ${createdTopic.name}, MessageId: ${createdTopic.message_thread_id}`);
       } catch (e) {
         this.logger.warn(`Topics are not supported in this chat`);
@@ -66,6 +69,8 @@ export class ConnectorScene {
       (ctx.update as any).message.message_id,
       data.message_id,
       true,
+      false,
+      Sender.USER
     );
   }
 
@@ -77,6 +82,14 @@ export class ConnectorScene {
   @Command('cancel')
   async cancel(@Ctx() ctx: Scenes.SceneContext) {
     await ctx.scene.leave();
+  }
+
+  @On('edited_message')
+  async onEditedMessage(@Ctx() ctx: Context<EditedMessageUpdate<any>>) {
+    const foundUserMessage = await this.connectorService.getConnectionByUserMessageId(ctx.update.edited_message.from.id, ctx.update.edited_message.message_id);
+    if (foundUserMessage) {
+      await this.connectorService.handleEditMessage(ctx, this.configService.get('telegram.chats.adminSupportChatId'), foundUserMessage.adminMessageId);
+    }
   }
 
   @On('message')
@@ -110,6 +123,8 @@ export class ConnectorScene {
       ctx.message.message_id,
       copiedMessage.message_id,
       false,
+      false,
+      Sender.USER
     );
   }
 }

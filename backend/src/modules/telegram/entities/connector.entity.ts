@@ -5,6 +5,11 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+export enum Sender {
+  USER = 'user',
+  ADMIN = 'admin'
+}
+
 @Entity()
 export class ConnectorEntity {
   @PrimaryGeneratedColumn('increment')
@@ -21,6 +26,12 @@ export class ConnectorEntity {
 
   @Column()
   isTopicStart: boolean;
+
+  @Column({
+    enum: Sender,
+    type: 'enum'
+  })
+  sender: Sender;
 
   @Column()
   adminMessageId: number;

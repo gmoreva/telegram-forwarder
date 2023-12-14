@@ -1,13 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
-import { ConnectorEntity } from '../entities/connector.entity';
+import { ConnectorEntity, Sender } from '../entities/connector.entity';
+import { InjectBot } from 'nestjs-telegraf';
+import { Context, Telegraf } from 'telegraf';
+import { Update } from 'typegram';
+import EditedMessageUpdate = Update.EditedMessageUpdate;
+import { Message } from 'telegraf/types';
 
 @Injectable()
 export class ConnectorService {
   constructor(
     @InjectEntityManager()
     private readonly man: EntityManager,
+    @InjectBot() private bot: Telegraf<Context>
   ) {
   }
 
@@ -55,19 +61,38 @@ export class ConnectorService {
     userMessageId: number,
     adminMessageId: number,
     isInit = false,
-    isTopicStart = false
+    isTopicStart = false,
+    sender: Sender,
   ): Promise<void> {
     const element = this.man.create(ConnectorEntity, {
       userMessageId,
       adminMessageId,
       userId,
       isInit,
-      isTopicStart
+      isTopicStart,
+      sender
     });
     await this.man.save(element);
   }
 
   public getSupportAdminTelegramId(): number {
     return Number(process.env.ADMIN_SUPPORT_CHAT.toString());
+  }
+
+  public async handleEditMessage(ctx: Context<EditedMessageUpdate<any>>, chatId: number, messageId: number) {
+    const update = ctx.update;
+    const editedMessage = update.edited_message as unknown;
+    let editedTextMessage = editedMessage as Message.TextMessage;
+    let editedPhoto = editedMessage as Message.PhotoMessage;
+    if (editedTextMessage.text)
+      await ctx.telegram.editMessageText(chatId, messageId, undefined, update.edited_message.text);
+    if (editedPhoto.photo) {
+      const photoId = editedPhoto.photo[0].file_id;
+      await ctx.telegram.editMessageMedia(chatId, messageId, undefined, {
+        type: 'photo',
+        media: photoId,
+        caption: editedPhoto.caption
+      });
+    }
   }
 }
