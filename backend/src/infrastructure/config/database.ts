@@ -2,7 +2,9 @@ import { parseDbUrl } from '@common/parse-db-url';
 import { DataSourceOptions } from 'typeorm';
 import * as path from 'path';
 
-export const databaseConfig = () => {
+export const databaseConfig = (): {
+  database: DataSourceOptions;
+} => {
   const parsedDb = parseDbUrl(process.env.DATABASE_URL);
   const options: DataSourceOptions = {
     type: 'postgres',

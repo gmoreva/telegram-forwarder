@@ -28,7 +28,7 @@ export class ConnectorScene {
   ) {}
 
   @SceneEnter()
-  async help(@Ctx() ctx: Context) {
+  async help(@Ctx() ctx: Context): Promise<void> {
     const { connectorService } = this;
     await ctx.reply(
       'Пишите мне также, как писали бы обычному человеку. Я буду вашим связным:)',
@@ -94,17 +94,19 @@ export class ConnectorScene {
   }
 
   @SceneLeave()
-  async leavingScene(@Ctx() ctx: Scenes.SceneContext) {
+  async leavingScene(@Ctx() ctx: Scenes.SceneContext): Promise<void> {
     await ctx.reply('Спасибо за диалог');
   }
 
   @Command('cancel')
-  async cancel(@Ctx() ctx: Scenes.SceneContext) {
+  async cancel(@Ctx() ctx: Scenes.SceneContext): Promise<void> {
     await ctx.scene.leave();
   }
 
   @On('edited_message')
-  async onEditedMessage(@Ctx() ctx: Context<EditedMessageUpdate<any>>) {
+  async onEditedMessage(
+    @Ctx() ctx: Context<EditedMessageUpdate<any>>,
+  ): Promise<void> {
     const foundUserMessage =
       await this.connectorService.getConnectionByUserMessageId(
         ctx.update.edited_message.from.id,
@@ -122,7 +124,7 @@ export class ConnectorScene {
   @On('message')
   async onMessage(
     @Ctx() ctx: Context<Update.MessageUpdate<Message.TextMessage>>,
-  ) {
+  ): Promise<void> {
     this.logger.log(ctx.update);
     if (!ctx.update.message) {
       this.logger.warn(`Unknown update`);

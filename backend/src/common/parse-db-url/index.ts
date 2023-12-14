@@ -28,18 +28,18 @@ export function parseDbUrl(databaseUrl: string): Created {
 
   config.driver = (parsedUrl.protocol || 'sqlite3:')
     // The protocol coming from url.parse() has a trailing :
-    .replace(/\:$/, '');
+    .replace(/:$/, '');
 
   // Cloud Foundry will sometimes set a 'mysql2' scheme instead of 'mysql'.
-  if (config.driver == 'mysql2') config.driver = 'mysql';
+  if (config.driver === 'mysql2') config.driver = 'mysql';
 
   // url.parse() produces an "auth" that looks like "user:password". No
   // individual fields, unfortunately.
   if (parsedUrl.auth) {
     const userPassword = parsedUrl.auth.split(':', 2);
-    config.user = userPassword[0];
+    [config.user] = userPassword;
     if (userPassword.length > 1) {
-      config.password = userPassword[1];
+      [config.user, config.password] = userPassword;
     }
   }
 

@@ -5,8 +5,6 @@ import { ExtraCopyMessage } from 'telegraf/typings/telegram-types';
 import { ConfigService } from '@nestjs/config';
 import { Update } from 'typegram';
 import { Sender } from '@modules/telegram/entities/connector.entity';
-import MessageUpdate = Update.MessageUpdate;
-import EditedMessageUpdate = Update.EditedMessageUpdate;
 import { handleEditMessage } from '@modules/telegram/connector/helpers';
 import { ConnectorService } from './connector.service';
 import { CONNECTOR_ADMIN } from '../scenes';
@@ -22,20 +20,22 @@ export class ConnectorAdminScene {
   ) {}
 
   @SceneEnter()
-  async help(@Ctx() ctx: Context<any>) {
+  async help(@Ctx() ctx: Context<any>): Promise<void> {
     this.logger.log('Enter Support admin');
     return this.onMessage(ctx);
   }
 
   @Help()
-  async helpSupport(@Ctx() ctx: Context) {
+  async helpSupport(@Ctx() ctx: Context): Promise<void> {
     await ctx.reply(
       'Для ответа пользователю нужно ответить на сообщение через reply. Или перейти в тред по ссылке головного сообщения и писать ответы там',
     );
   }
 
   @On('edited_message')
-  async onEditedMessage(@Ctx() ctx: Context<EditedMessageUpdate<any>>) {
+  async onEditedMessage(
+    @Ctx() ctx: Context<Update.EditedMessageUpdate<any>>,
+  ): Promise<void> {
     const foundUserMessage =
       await this.connectorService.getConnectionByAdminChatId(
         ctx.update.edited_message.message_id,
@@ -52,7 +52,9 @@ export class ConnectorAdminScene {
   // @On('rem')
 
   @On('message')
-  async onMessage(@Ctx() ctx: Context<MessageUpdate<any>>) {
+  async onMessage(
+    @Ctx() ctx: Context<Update.MessageUpdate<any>>,
+  ): Promise<void> {
     this.logger.log(ctx.update);
     if (!ctx.update.message) {
       this.logger.warn(`Unknown update`);

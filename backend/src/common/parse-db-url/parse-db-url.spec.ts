@@ -15,6 +15,5 @@ describe('db url parsing', () => {
       port: 5432,
       database: 'database',
     });
-    console.log(data);
   });
 });

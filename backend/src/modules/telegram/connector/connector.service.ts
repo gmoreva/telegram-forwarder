@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
-import { Update } from 'typegram';
 import { ConnectorEntity, Sender } from '../entities/connector.entity';
 
 @Injectable()
@@ -59,8 +58,8 @@ export class ConnectorService {
     userId: number,
     userMessageId: number,
     adminMessageId: number,
-    isInit = false,
-    isTopicStart = false,
+    isInit: boolean,
+    isTopicStart: boolean,
     sender: Sender,
   ): Promise<void> {
     const element = this.man.create(ConnectorEntity, {

@@ -10,7 +10,7 @@ export class TelegramService implements OnApplicationBootstrap {
 
   constructor(@InjectBot() private bot: Telegraf<Scenes.SceneContext>) {}
 
-  public async middleware(ctx: Context, next: any) {
+  public async middleware(ctx: Context, next: any): Promise<void> {
     try {
       await next();
     } catch (e) {

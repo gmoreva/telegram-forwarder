@@ -13,25 +13,24 @@ export class AppUpdate {
   constructor(private config: ConfigService) {}
 
   @Start()
-  async start(@Ctx() ctx: Scenes.SceneContext) {
+  async start(@Ctx() ctx: Scenes.SceneContext): Promise<void> {
     await this.help(ctx);
   }
 
   @Command(COMMAND_CONNECT)
-  async connect(@Ctx() ctx: Scenes.SceneContext) {
+  async connect(@Ctx() ctx: Scenes.SceneContext): Promise<void> {
     await ctx.scene.enter(CONNECTOR);
   }
 
-  async help(@Ctx() ctx: Context) {
+  async help(@Ctx() ctx: Context): Promise<void> {
     await ctx.reply(
       `Добрый день! С Вами говорит виртуальный помощник ${this.config.get(
         'telegram.ownerName',
-        '${username}',
-      )}. Вам доступны следующие команды:` +
-        '\n\n' +
-        '/connect - связаться с ${username}' +
-        '\n' +
-        '/help - увидеть это сообщение',
+        `$\{username}`,
+      )}. Вам доступны следующие команды:
+
+/connect - связаться с $\{username}
+/help - увидеть это сообщение`,
     );
   }
 
@@ -41,10 +40,6 @@ export class AppUpdate {
     this.logger.log(
       `Current settings: ${JSON.stringify(this.config.get('telegram.chats'))}`,
     );
-    console.log({
-      config: this.config.get('telegram.chats.adminSupportChatId'),
-      id: ctx.chat.id,
-    });
     const common = this.handleCommonUpdates(ctx);
     if (!common) {
       return;
@@ -65,7 +60,7 @@ export class AppUpdate {
         ctx.message.chat.title,
         ctx.message.chat.id,
       );
-      return;
+      return false;
     }
     if (ctx.message.left_chat_participant?.id === ctx.botInfo.id) {
       this.logger.log(
@@ -73,7 +68,7 @@ export class AppUpdate {
         ctx.message.chat.title,
         ctx.message.chat.id,
       );
-      return;
+      return false;
     }
     if (ctx.message.new_chat_member?.id === ctx.botInfo.id) {
       this.logger.log(
@@ -81,7 +76,7 @@ export class AppUpdate {
         ctx.message.chat.title,
         ctx.message.chat.id,
       );
-      return;
+      return false;
     }
 
     return true;

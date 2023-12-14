@@ -7,7 +7,7 @@ export async function handleEditMessage(
   ctx: Context<EditedMessageUpdate<any>>,
   chatId: number,
   messageId: number,
-) {
+): Promise<void> {
   const { update } = ctx;
   const editedMessage = update.edited_message as unknown;
   const editedTextMessage = editedMessage as Message.TextMessage;
