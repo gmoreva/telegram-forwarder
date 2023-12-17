@@ -19,7 +19,7 @@ services:
       - VIRTUAL_HOST=${DOMAIN}
       - VIRTUAL_PORT=80
       - LETSENCRYPT_HOST=${DOMAIN}
-      - LETSENCRYPT_EMAIL=test@test.ru
+      - LETSENCRYPT_EMAIL=${HTTPS_EMAIL}
 
   node:
     build:
@@ -32,14 +32,33 @@ services:
     restart: always
     environment:
       - APP_PORT=3001
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ADMIN_SUPPORT_CHAT=${ADMIN_SUPPORT_CHAT}
+      - WORK_WITH_TOPICS=${WORK_WITH_TOPICS}
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@db:5432/forwarder?runMigrate=1
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:3001 || exit 1
       timeout: 3s
       interval: 3s
       retries: 10
+
+  db:
+    image: postgres:14.10-alpine
+    restart: always
+    networks:
+      - back
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./server/pg/10-init-db.sh:/docker-entrypoint-initdb.d/10-init-user-db.sh
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
 networks:
   reverse-proxy:
     external:
       name: reverse-proxy
   back:
     driver: bridge
+
+volumes:
+  postgres:
